@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log Update</title>
+  <script src="/js/sockjs.min.js"></script>
+  <script src="/js/stomp.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+<div id="fileUpdates"></div>
+
+<script>
+        var stompClient = null;
+
+        function connect() {
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                console.log('Connected: ' + frame);
+                $.get("/initialData", function(data) {
+                    showInitialData(data);
+                });
+
+                stompClient.subscribe('/topic/fileUpdates', function(message) {
+                    showFileUpdate(message.body);
+                });
+            });
+        }
+
+        function showInitialData(data) {
+            console.log('Initial Data:', data);
+            for (var i = 0; i < data.length; i++) {
+                $('#fileUpdates').append('<p>' + data[i] + '</p>');
+            }
+        }
+
+        function showFileUpdate(message) {
+            console.log('File Update:', message);
+            $('#fileUpdates').append('<p>' + message + '</p>');
+        }
+
+        $(document).ready(function() {
+            connect();
+        });
+
+</script>
+</body>
+</html>
